@@ -22,8 +22,8 @@ REMOTE_FOLDER = '1C8'
 LOCAL_FOLDER = '/home/garbage/backup/'
 
 #Создание дампов PostgreSQL
-database = ['trade', 'buh2bd', 'salary']
-#database = ['salary']
+#database = ['trade', 'buh2bd', 'salary']
+database = ['salary']
 backupdir='/home/garbage/backup/'
 date = time.strftime('%Y-%m-%d')
 
