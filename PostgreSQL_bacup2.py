@@ -23,7 +23,8 @@ date = time.strftime('%Y-%m-%d')
 
 for backup in database:
     subprocess.call('cd %s | pg_dump -U postgres %s | gzip -9 -c > %s/%s-%s.gz' % (backupdir, backup, backupdir, date, backup), shell=True)
-    filename = '%s%s-%s.gz' % (backupdir, date, database)
+    filename = '%s%s-%s.gz' % (backupdir, date, backup)
+    print(filename)
 
 
 # Удаление старых копий
@@ -38,51 +39,43 @@ for filename in onlyfiles:
         print("Delete file: "+filename)
         os.remove(backupdir+filename)
 
-from ftpsync.targets import FsTarget
-from ftpsync.ftp_target import FtpTarget
-from ftpsync.synchronizers import BiDirSynchronizer
 
+#####Синхронизация с FTP######
 
-
-
-
-
-
-
-local = FsTarget('/home/garbage/backup/')
-user = 'buuser'
-passwd = 'buuserpwd'
+# #Настройки FTP
 host = '192.168.0.26'
-remote = FtpTarget('/1C8', host, user, passwd, tls=True)
-opts = {'resolve': 'skip', 'verbose': 1, 'dry_run': False}
-s = BiDirSynchronizer(local, remote, opts)
-s.run()
+ftp_user = 'buuser'
+ftp_password = 'buuserpwd'
+REMOTE_FOLDER = '1C8'
+LOCAL_FOLDER = '/home/garbage/backup/'
+
+#соединяемся с сервером
+server = ftplib.FTP(host)
+server.login(ftp_user, ftp_password)
+
+#делаем текущими папки для синхронизации
+server.cwd(REMOTE_FOLDER)
+os.chdir(LOCAL_FOLDER)
+
+#получаем список файлов с синхронизируемых папках
+remote_files = set(server.nlst())
+local_files = set(os.listdir(os.curdir))
+
+#загружаем недостающие файлы на ftp
+for local_file in local_files - remote_files:
+    server.storbinary('STOR ' + local_file, open(local_file, 'rb'))
+
+#закрываем соединение с сервером
+server.close()
 
 
-        # #####Загрузка на FTP######
-#
-# # #Настройки FTP
-# host = '192.168.0.26'
-# ftp_user = 'buuser'
-# ftp_password = 'buuserpwd'
-# REMOTE_FOLDER = '1C8'
-# LOCAL_FOLDER = '/home/garbage/backup/'
-#
-# #соединяемся с сервером
-# server = ftplib.FTP(host)
-# server.login(ftp_user, ftp_password)
-#
-# #делаем текущими папки для синхронизации
-# server.cwd(REMOTE_FOLDER)
-# os.chdir(LOCAL_FOLDER)
-#
-# #получаем список файлов с синхронизируемых папках
-# remote_files = set(server.nlst())
-# local_files = set(os.listdir(os.curdir))
-#
-# #загружаем недостающие файлы на ftp
-# for local_file in local_files - remote_files:
-#     server.storbinary('STOR ' + local_file, open(local_file, 'r'))
-#
-# #закрываем соединение с сервером
-# server.close()
+
+
+
+
+
+
+
+
+
+
