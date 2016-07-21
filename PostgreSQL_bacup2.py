@@ -14,6 +14,24 @@ from datetime import timedelta, datetime
 import os.path, time
 import ftplib
 
+#Логирование
+# импортируем модуль
+import logging
+# создаём объект с именем модуля
+logger = logging.getLogger(__name__)
+# задаём уровень логгирования
+logger.setLevel(logging.INFO)
+# создаём обрабочтик файла лога
+handler = logging.FileHandler('backup.log')
+# задаём уровень логгирования
+handler.setLevel(logging.INFO)
+# форматируем записи
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+# устанавливаем формат для обработчика
+handler.setFormatter(formatter)
+# добавляем обработчик к логгеру
+logger.addHandler(handler)
+
 
 #Создание дампов PostgreSQL
 #database = ['trade', 'buh2bd', 'salary']
@@ -23,8 +41,11 @@ date = time.strftime('%Y-%m-%d')
 
 for backup in database:
     subprocess.call('cd %s | pg_dump -U postgres %s | gzip -9 -c > %s/%s-%s.gz' % (backupdir, backup, backupdir, date, backup), shell=True)
-    filename = '%s%s-%s.gz' % (backupdir, date, backup)
-    print(filename)
+    #filename = '%s%s-%s.gz' % (backupdir, date, backup) - не помню зачем мне это нужно
+    logger.info(backup + ' дамп создан и заархивирован')
+else:
+    logger.error(backup + ' дамп не создан')
+
 
 
 # Удаление старых копий
@@ -48,6 +69,7 @@ ftp_user = 'buuser'
 ftp_password = 'buuserpwd'
 REMOTE_FOLDER = '1C8'
 LOCAL_FOLDER = '/home/garbage/backup/'
+
 
 #соединяемся с сервером
 server = ftplib.FTP(host)
