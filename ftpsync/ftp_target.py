@@ -85,7 +85,7 @@ class FtpTarget(_Target):
         store_password = self.get_option("store_password", False)
 
         if self.port:
-            self.ftp.connect(self.host, self.port)
+            self.ftp.connect(self.host, int(self.port))
         else:
             self.ftp.connect(self.host)
 
